@@ -41,19 +41,19 @@ export default function CheckoutPage() {
           },
         ],
       },
-      callback: async function (response: { reference: string }) {
-        toast.success("Payment successful!");
-
-        const payload = {
-          email,
-          amount: amountInKobo,
-          currency: "NGN",
-          reference: response.reference,
-          courses: cart.map((item) => item.id), // change to `item.title` if needed
-          status: "success",
-        };
-
+      callback: async function (response) {
         try {
+          toast.success("Payment successful!");
+
+          const payload = {
+            email,
+            amount: amountInKobo,
+            currency: "NGN",
+            reference: response.reference,
+            courses: cart.map((item) => item.id),
+            status: "success",
+          };
+
           const res = await fetch(
             "https://ns.auwebx.com/api/payments/save_payment.php",
             {
@@ -66,26 +66,21 @@ export default function CheckoutPage() {
           );
 
           if (!res.ok) {
-            const errData = await res.json();
-            console.error("Server Error:", errData);
-            toast.error("Payment successful, but failed to record on server.");
+            toast.error("Payment saved but failed to record on server.");
           }
-        } catch (error) {
-          console.error("Error:", error);
-          toast.error(
-            "Payment successful, but error occurred saving to server."
-          );
+
+          router.push(`/thank-you?ref=${response.reference}`);
+        } catch (err) {
+          console.error("Payment callback error:", err);
+          toast.error("Payment successful, but an error occurred.");
         }
-
-        router.push(`/thank-you?ref=${response.reference}`);
       },
-
       onClose: function () {
         toast("Payment window closed.");
       },
     });
 
-    handler.openIframe(); // VERY IMPORTANT
+    handler.openIframe();
   };
 
   const handleBankTransfer = async () => {
