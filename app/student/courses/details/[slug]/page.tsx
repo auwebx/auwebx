@@ -57,45 +57,62 @@ export default function StudentCourseDetail({ params }: PageProps) {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [watched, setWatched] = useState<number[]>([]);
 
+  // Load user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const userData: User | null = storedUser ? JSON.parse(storedUser) : null;
-    if (userData) setUser(userData);
+    if (storedUser) {
+      try {
+        const userData: User = JSON.parse(storedUser);
+        setUser(userData);
+      } catch {
+        console.error("Invalid user data in localStorage.");
+      }
+    }
   }, []);
 
+  // Fetch course and chapter data
   useEffect(() => {
     if (slug) {
       fetch(`https://ns.auwebx.com/api/courses/fetch_course_by_slug.php?slug=${slug}`)
         .then(res => res.json())
         .then(data => {
-          setCourse(data.course);
+          setCourse(data.course || null);
           setChapters(data.chapters || []);
-        });
+        })
+        .catch(console.error);
     }
   }, [slug]);
 
+  // Fetch watched lectures for user
   useEffect(() => {
     if (user?.id) {
       fetch(`https://ns.auwebx.com/api/user/fetch_progress.php?user_id=${user.id}`)
         .then(res => res.json())
-        .then(data => setWatched(data.watchedLectures || []));
+        .then(data => setWatched(data.watchedLectures || []))
+        .catch(console.error);
     }
   }, [user]);
 
+  // Track and send progress
   const handleProgress = async (lectureId: number) => {
-    if (watched.includes(lectureId) || !user) return;
+    if (!user || watched.includes(lectureId)) return;
 
-    await fetch('https://ns.auwebx.com/api/user/watched_lecture.php', {
-      method: 'POST',
-      body: new URLSearchParams({
-        user_id: user.id.toString(),
-        lecture_id: lectureId.toString(),
-      }),
-    });
+    try {
+      await fetch('https://ns.auwebx.com/api/user/watched_lecture.php', {
+        method: 'POST',
+        body: new URLSearchParams({
+          user_id: user.id.toString(),
+          lecture_id: lectureId.toString(),
+        }),
+      });
 
-    setWatched(prev => [...prev, lectureId]);
+      setWatched(prev => [...prev, lectureId]);
+    } catch (error) {
+      console.error("Failed to update progress", error);
+    }
   };
 
+  // Trigger progress update on video playback
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>, lectureId: number) => {
     const video = e.currentTarget;
     const percent = (video.currentTime / video.duration) * 100;
@@ -107,8 +124,8 @@ export default function StudentCourseDetail({ params }: PageProps) {
 
   if (!course) return <div className="p-6 text-center">Loading...</div>;
 
-  const totalLectures = chapters.reduce((acc, ch) => acc + ch.lectures.length, 0);
-  const percentComplete = totalLectures === 0 ? 0 : Math.round((watched.length / totalLectures) * 100);
+  const totalLectures = chapters.reduce((sum, chapter) => sum + chapter.lectures.length, 0);
+  const percentComplete = totalLectures ? Math.round((watched.length / totalLectures) * 100) : 0;
 
   return (
     <div className="p-6">
