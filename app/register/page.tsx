@@ -1,15 +1,17 @@
-'use client';
+"use client";
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface FormValues {
   fullname: string;
   email: string;
   password: string;
+  confirmPassword: string;
 }
 
 export default function Register() {
@@ -18,6 +20,8 @@ export default function Register() {
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const validationSchema = Yup.object({
     fullname: Yup.string()
@@ -26,7 +30,12 @@ export default function Register() {
     email: Yup.string().email('Invalid email').required('Email is required'),
     password: Yup.string()
       .min(6, 'Password must be at least 6 characters')
+      .matches(/[a-zA-Z]/, 'Password must contain letters')
+      .matches(/\d/, 'Password must contain a number')
       .required('Password is required'),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref('password')], 'Passwords must match')
+      .required('Confirm password is required'),
   });
 
   const formik = useFormik<FormValues>({
@@ -34,6 +43,7 @@ export default function Register() {
       fullname: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -138,18 +148,51 @@ export default function Register() {
           )}
         </div>
 
-        <div className="mb-4">
+        {/* Password Field with Toggle */}
+        <div className="mb-4 relative">
           <input
             name="password"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             placeholder="Password"
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.password}
-            className={`w-full p-2 border rounded ${formik.touched.password && formik.errors.password ? 'border-red-500' : ''}`}
+            className={`w-full p-2 border rounded pr-10 ${formik.touched.password && formik.errors.password ? 'border-red-500' : ''}`}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
+            aria-label="Toggle password visibility"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
           {formik.touched.password && formik.errors.password && (
             <p className="text-sm text-red-500 mt-1">{formik.errors.password}</p>
+          )}
+        </div>
+
+        {/* Confirm Password Field with Toggle */}
+        <div className="mb-4 relative">
+          <input
+            name="confirmPassword"
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="Confirm Password"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.confirmPassword}
+            className={`w-full p-2 border rounded pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword ? 'border-red-500' : ''}`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
+            aria-label="Toggle confirm password visibility"
+          >
+            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+          {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+            <p className="text-sm text-red-500 mt-1">{formik.errors.confirmPassword}</p>
           )}
         </div>
 
