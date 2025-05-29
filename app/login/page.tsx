@@ -30,7 +30,7 @@ export default function LoginPage() {
 
       if (user.role === 'admin') router.push('/admin/dashboard');
       else if (user.role === 'staff') router.push('/staff/dashboard');
-      else router.push('/student/dashboard');
+      else router.push('/');
     } else {
       setError(data.message || 'Login failed.');
     }
