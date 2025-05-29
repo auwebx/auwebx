@@ -6,8 +6,6 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import Header from "@/components/shared/header";
-import Footer from "@/components/footer";
 
 interface LoginFormValues {
   email: string;
@@ -60,11 +58,26 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
+        <Link href="/" className="text-xl font-bold text-blue-600">
+          AUWEBx Academy
+        </Link>
+        <nav>
+          <Link
+            href="/"
+            className="text-sm text-gray-700 hover:text-blue-600 transition"
+          >
+            Courses
+          </Link>
+        </nav>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-grow flex items-center justify-center bg-gray-100 px-4">
         <div className="bg-white p-6 rounded shadow-md w-full max-w-md space-y-4">
-          <h2 className="text-xl font-semibold text-center">Login</h2>
+          <h2 className="text-xl font-semibold text-center text-blue-700">Login</h2>
 
           {serverError && (
             <p className="text-red-500 text-sm text-center">{serverError}</p>
@@ -115,7 +128,7 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
                 >
                   Login
                 </button>
@@ -132,8 +145,12 @@ export default function LoginPage() {
             )}
           </Formik>
         </div>
-      </div>
-      <Footer />
-    </>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500">
+        &copy; {new Date().getFullYear()} AUWEBx Academy. All rights reserved.
+      </footer>
+    </div>
   );
 }
