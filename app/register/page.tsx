@@ -203,6 +203,7 @@ export default function Register() {
             accept="image/jpeg,image/png,image/webp"
             onChange={handleImageChange}
             className="w-full"
+            required
           />
         </div>
 
