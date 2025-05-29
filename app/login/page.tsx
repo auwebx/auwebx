@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import Image from "next/image";
+import { APP_NAME } from "@/lib/constants";
 
 interface LoginFormValues {
   email: string;
@@ -62,7 +64,29 @@ export default function LoginPage() {
       {/* Header */}
       <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold text-blue-600">
-          AUWEBx
+          <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
+            <Link href="/" className="text-xl flex font-bold text-blue-600">
+              <Image
+                src="/mylogo.jpg"
+                alt={`${APP_NAME} logo`}
+                height={48}
+                width={48}
+                priority={true}
+                className="rounded-lg"
+              />
+              <span className="hidden lg:block font-bold text-2xl ml-3">
+                {APP_NAME}
+              </span>
+            </Link>
+            <nav>
+              <Link
+                href="/"
+                className="text-sm text-gray-700 hover:text-blue-600 transition"
+              >
+                Courses
+              </Link>
+            </nav>
+          </header>
         </Link>
         <nav>
           <Link
@@ -77,7 +101,9 @@ export default function LoginPage() {
       {/* Main Content */}
       <main className="flex-grow flex items-center justify-center bg-gray-100 px-4">
         <div className="bg-white p-6 rounded shadow-md w-full max-w-md space-y-4">
-          <h2 className="text-xl font-semibold text-center text-blue-700">Login</h2>
+          <h2 className="text-xl font-semibold text-center text-blue-700">
+            Login
+          </h2>
 
           {serverError && (
             <p className="text-red-500 text-sm text-center">{serverError}</p>

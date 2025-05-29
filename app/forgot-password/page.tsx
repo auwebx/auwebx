@@ -54,9 +54,8 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      {/* Header */}
       <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-blue-600">
+        <Link href="/" className="text-xl flex font-bold text-blue-600">
           <Image
             src="/mylogo.jpg"
             alt={`${APP_NAME} logo`}
