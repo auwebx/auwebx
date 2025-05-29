@@ -21,39 +21,64 @@ export default function CheckoutPage() {
   const amountInKobo = total * 100;
 
   const payWithPaystack = () => {
-  if (!email) return toast.error("Enter your email.");
-  if (!window.PaystackPop || typeof window.PaystackPop.setup !== "function") {
-    return toast.error("Paystack SDK not loaded. Try refreshing the page.");
-  }
+    if (!email) return toast.error("Enter your email.");
+    if (!window.PaystackPop || typeof window.PaystackPop.setup !== "function") {
+      return toast.error("Paystack SDK not loaded. Try refreshing the page.");
+    }
 
-  const handler = window.PaystackPop.setup({
-  key: PAYSTACK_PUBLIC_KEY,
-  email,
-  amount: amountInKobo,
-  currency: "NGN",
-  ref: `ref-${Date.now()}`,
-  metadata: {
-  custom_fields: [
-    {
-      display_name: "Courses",
-      variable_name: "courses",
-      value: cart.map((item) => item.title).join(", "),
-    },
-  ],
-},
+    const handler = window.PaystackPop.setup({
+      key: PAYSTACK_PUBLIC_KEY,
+      email,
+      amount: amountInKobo,
+      currency: "NGN",
+      ref: `ref-${Date.now()}`,
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Courses",
+            variable_name: "courses",
+            value: cart.map((item) => item.title).join(", "),
+          },
+        ],
+      },
 
-  callback: function (response: { reference: string }) {
-    toast.success("Payment successful!");
-    router.push(`/thank-you?ref=${response.reference}`);
-  },
-  onClose: function () {
-    toast("Payment window closed.");
-  },
-});
+      // ✅ Make callback async to handle the fetch
+      callback: async function (response: { reference: string }) {
+        toast.success("Payment successful!");
 
-handler.openIframe(); // ✅ DO NOT FORGET THIS!
-  }
+        const payload = {
+          email,
+          amount: amountInKobo,
+          currency: "NGN",
+          reference: response.reference,
+          courses: cart.map((item) => item.title).join(", "),
+          status: "success",
+        };
 
+        try {
+          await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+        } catch (error) {
+          console.error("Failed to save payment:", error);
+          toast.error("Payment saved, but failed to store record.");
+        }
+
+        // ✅ Redirect after logging
+        router.push(`/thank-you?ref=${response.reference}`);
+      },
+
+      onClose: function () {
+        toast("Payment window closed.");
+      },
+    });
+
+    handler.openIframe(); // ✅ DO NOT FORGET THIS!
+  };
 
   const handleBankTransfer = async () => {
     if (!email) return toast.error("Enter your email.");
@@ -75,7 +100,10 @@ handler.openIframe(); // ✅ DO NOT FORGET THIS!
 
         <ul className="space-y-4 mb-6">
           {cart.map((item) => (
-            <li key={item.id} className="flex items-center gap-4 border p-3 rounded">
+            <li
+              key={item.id}
+              className="flex items-center gap-4 border p-3 rounded"
+            >
               <Image
                 src={`https://ns.auwebx.com/api/courses/${item.thumbnail}`}
                 alt={item.title || "Course"}
@@ -85,7 +113,9 @@ handler.openIframe(); // ✅ DO NOT FORGET THIS!
               />
               <div>
                 <h3 className="font-semibold">{item.title}</h3>
-                <p className="text-gray-600">₦{Number(item.price).toFixed(2)}</p>
+                <p className="text-gray-600">
+                  ₦{Number(item.price).toFixed(2)}
+                </p>
               </div>
             </li>
           ))}
@@ -126,25 +156,35 @@ handler.openIframe(); // ✅ DO NOT FORGET THIS!
 
         {method === "bank" && (
           <div className="bg-gray-50 p-4 rounded border mb-6">
-            <h3 className="font-semibold mb-2 text-lg">Bank Transfer Instructions</h3>
+            <h3 className="font-semibold mb-2 text-lg">
+              Bank Transfer Instructions
+            </h3>
             <ul className="text-sm text-gray-700 mt-2 space-y-1">
-              <li><strong>Bank:</strong> Zenith Bank</li>
-              <li><strong>Account Name:</strong> AUWEBx Academy</li>
-              <li><strong>Account Number:</strong> 1234567890</li>
+              <li>
+                <strong>Bank:</strong> Zenith Bank
+              </li>
+              <li>
+                <strong>Account Name:</strong> AUWEBx Academy
+              </li>
+              <li>
+                <strong>Account Number:</strong> 1234567890
+              </li>
               <li>
                 <strong>Amount:</strong> ₦
                 {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </li>
             </ul>
             <p className="mt-3 text-sm text-gray-600">
-              After transferring, click below to notify us for verification and enrollment.
+              After transferring, click below to notify us for verification and
+              enrollment.
             </p>
           </div>
         )}
 
         <div className="flex justify-between items-center">
           <span className="text-xl font-bold">
-            Total: ₦{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            Total: ₦
+            {total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </span>
 
           {method === "paystack" ? (
@@ -165,7 +205,11 @@ handler.openIframe(); // ✅ DO NOT FORGET THIS!
               >
                 <input type="hidden" name="key" value={PAYSTACK_PUBLIC_KEY} />
                 <input type="hidden" name="email" value={email} />
-                <input type="hidden" name="amount" value={amountInKobo.toString()} />
+                <input
+                  type="hidden"
+                  name="amount"
+                  value={amountInKobo.toString()}
+                />
                 <input type="hidden" name="currency" value="NGN" />
                 <input
                   type="hidden"
