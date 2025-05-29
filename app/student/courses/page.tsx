@@ -13,6 +13,8 @@ type Course = {
   progress: number;
 };
 
+const API_URL = "https://ns.auwebx.com/api";
+
 export default function StudentCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export default function StudentCoursesPage() {
               className="block border rounded shadow hover:shadow-md transition overflow-hidden"
             >
               <Image
-                src={course.thumbnail}
+                 src={`${API_URL}/courses/${course.thumbnail}`}
                 alt={course.title}
                 width={400}
                 height={200}
