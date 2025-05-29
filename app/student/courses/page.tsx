@@ -66,7 +66,7 @@ export default function StudentCoursesPage() {
           {courses.map(course => (
             <Link
               key={course.id}
-              href={`/courses/${course.slug}`}
+              href={`/student/courses/details/${course.slug}`}
               className="block border rounded shadow hover:shadow-md transition overflow-hidden"
             >
               <Image
