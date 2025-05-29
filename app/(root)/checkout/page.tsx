@@ -7,7 +7,8 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 // Replace with your actual key
-const PAYSTACK_PUBLIC_KEY = "pk_test_79f6e1f1b469ad67530a82756225e84c4e924a6b";
+const PAYSTACK_PUBLIC_KEY: string = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!;
+
 
 export default function CheckoutPage() {
   const { cart } = useCart();
@@ -41,10 +42,28 @@ export default function CheckoutPage() {
         },
       ],
     },
-    callback: function (response: { reference: string }) {
-      toast.success("Payment successful!");
-      router.push(`/thank-you?ref=${response.reference}`);
+   callback: async function (response: { reference: string }) {
+  toast.success("Payment successful!");
+  const payload = {
+    email,
+    amount: amountInKobo,
+    currency: "NGN",
+    reference: response.reference,
+    courses: cart.map((item) => item.title).join(", "),
+    status: "success",
+  };
+
+  await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify(payload),
+  });
+
+  router.push(`/thank-you?ref=${response.reference}`);
+},
+
     onClose: function () {
       toast("Payment window closed.");
     },
