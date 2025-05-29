@@ -18,6 +18,9 @@ const Menu = () => {
   const { cart } = useCart();
   const [pulse, setPulse] = useState(false);
 
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+
   useEffect(() => {
     if (cart.length > 0) {
       setPulse(true);
@@ -51,9 +54,15 @@ const Menu = () => {
           </Link>
         </Button>
         <Button asChild>
-          <Link href="/sign-in">
-            <UserIcon className="mr-1" />
-            Sign In
+          <Link href={user ? "/student/dashboard" : "/login"}>
+            {user ? (
+              <>Dashboard</>
+            ) : (
+              <>
+                <UserIcon className="mr-1" />
+                Sign In
+              </>
+            )}
           </Link>
         </Button>
       </nav>
