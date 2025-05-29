@@ -43,24 +43,26 @@ type Course = {
   created_at: string;
 };
 
-interface Props {
-  slug: string;
+interface PageProps {
+  params: {
+    slug: string;
+  };
 }
 
-export default function StudentCourseDetail({ slug }: Props) {
+export default function StudentCourseDetail({ params }: PageProps) {
+  const { slug } = params;
+
   const [user, setUser] = useState<User | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [watched, setWatched] = useState<number[]>([]);
 
-  // Get user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const userData: User | null = storedUser ? JSON.parse(storedUser) : null;
     if (userData) setUser(userData);
   }, []);
 
-  // Fetch course and chapters by slug
   useEffect(() => {
     if (slug) {
       fetch(`https://ns.auwebx.com/api/courses/fetch_course_by_slug.php?slug=${slug}`)
@@ -72,7 +74,6 @@ export default function StudentCourseDetail({ slug }: Props) {
     }
   }, [slug]);
 
-  // Fetch watched lectures
   useEffect(() => {
     if (user?.id) {
       fetch(`https://ns.auwebx.com/api/user/fetch_progress.php?user_id=${user.id}`)
@@ -81,7 +82,6 @@ export default function StudentCourseDetail({ slug }: Props) {
     }
   }, [user]);
 
-  // Mark lecture as watched
   const handleProgress = async (lectureId: number) => {
     if (watched.includes(lectureId) || !user) return;
 
@@ -96,7 +96,6 @@ export default function StudentCourseDetail({ slug }: Props) {
     setWatched(prev => [...prev, lectureId]);
   };
 
-  // Triggered on video time update
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>, lectureId: number) => {
     const video = e.currentTarget;
     const percent = (video.currentTime / video.duration) * 100;
@@ -108,7 +107,6 @@ export default function StudentCourseDetail({ slug }: Props) {
 
   if (!course) return <div className="p-6 text-center">Loading...</div>;
 
-  // Calculate progress
   const totalLectures = chapters.reduce((acc, ch) => acc + ch.lectures.length, 0);
   const percentComplete = totalLectures === 0 ? 0 : Math.round((watched.length / totalLectures) * 100);
 
@@ -122,7 +120,7 @@ export default function StudentCourseDetail({ slug }: Props) {
           <div
             className="bg-green-500 h-2 rounded-full"
             style={{ width: `${percentComplete}%` }}
-          ></div>
+          />
         </div>
       </div>
 

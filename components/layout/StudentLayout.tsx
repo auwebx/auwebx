@@ -30,7 +30,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <SheetHeader>
-              <SheetTitle className="sr-only">Admin Navigation</SheetTitle>
+              <SheetTitle className="sr-only">Student Navigation</SheetTitle>
             </SheetHeader>
             <StudentSidebar />
           </SheetContent>
