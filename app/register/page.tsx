@@ -3,134 +3,176 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+
+interface FormValues {
+  fullname: string;
+  email: string;
+  password: string;
+}
 
 export default function Register() {
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    fullname: '',
-    email: '',
-    password: '',
-  });
-
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
+  const validationSchema = Yup.object({
+    fullname: Yup.string()
+      .min(3, 'Full name must be at least 3 characters')
+      .required('Full name is required'),
+    email: Yup.string().email('Invalid email').required('Email is required'),
+    password: Yup.string()
+      .min(6, 'Password must be at least 6 characters')
+      .required('Password is required'),
+  });
 
-    if (files && files[0]) {
-      const file = files[0];
-
-      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      const maxSize = 2 * 1024 * 1024; // 2MB
-
-      if (!validTypes.includes(file.type)) {
-        setError('Only JPEG, PNG, and WEBP images are allowed.');
-        return;
-      }
-
-      if (file.size > maxSize) {
-        setError('Image size must be under 2MB.');
-        return;
-      }
-
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
-      reader.readAsDataURL(file);
+  const formik = useFormik<FormValues>({
+    initialValues: {
+      fullname: '',
+      email: '',
+      password: '',
+    },
+    validationSchema,
+    onSubmit: async (values) => {
       setError('');
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+      setLoading(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
       const body = new FormData();
-      body.append('fullname', formData.fullname);
-      body.append('email', formData.email);
-      body.append('password', formData.password);
+      body.append('fullname', values.fullname);
+      body.append('email', values.email);
+      body.append('password', values.password);
       if (imageFile) body.append('profileImage', imageFile);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register.php`, {
-        method: 'POST',
-        body,
-      });
-
-      const text = await res.text();
-      let result;
-
       try {
-        result = JSON.parse(text);
-      } catch{
-        console.error("❌ Failed to parse JSON. Raw response:", text);
-        throw new Error("Invalid server response");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register.php`, {
+          method: 'POST',
+          body,
+        });
+
+        const text = await res.text();
+        let result;
+
+        try {
+          result = JSON.parse(text);
+        } catch {
+          console.error('❌ Failed to parse JSON. Raw response:', text);
+          throw new Error('Invalid server response');
+        }
+
+        if (result.status === 'success') {
+          router.push('/register/success');
+        } else {
+          setError(result.message || 'Something went wrong.');
+        }
+      } catch (err) {
+        console.error(err);
+        setError('Network error. Please try again later.');
       }
 
-      if (result.status === 'success') {
-        router.push('/register/success');
-      } else {
-        setError(result.message || 'Something went wrong.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Network error. Please try again later.');
+      setLoading(false);
+    },
+  });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const maxSize = 2 * 1024 * 1024; // 2MB
+
+    if (!validTypes.includes(file.type)) {
+      setError('Only JPEG, PNG, and WEBP images are allowed.');
+      return;
     }
 
-    setLoading(false);
+    if (file.size > maxSize) {
+      setError('Image size must be under 2MB.');
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreview(reader.result as string);
+    reader.readAsDataURL(file);
+    setError('');
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow">
-      <h1 className="text-2xl font-bold mb-4">Register</h1>
+    <div className="max-w-md mx-auto mt-10 p-6 border rounded shadow bg-white">
+      <h1 className="text-2xl font-bold mb-4 text-center">Register</h1>
 
-      {error && <p className="text-red-600 mb-2">{error}</p>}
-      {loading && <p className="text-blue-600 mb-2">Registering, please wait...</p>}
+      {error && <p className="text-red-600 mb-4 text-center">{error}</p>}
+      {loading && <p className="text-blue-600 mb-4 text-center">Registering, please wait...</p>}
 
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <input
-          name="fullname"
-          type="text"
-          placeholder="Full Name"
-          required
-          onChange={handleChange}
-          className="w-full mb-2 p-2 border rounded"
-        />
-        <input
-          name="email"
-          type="email"
-          placeholder="Email"
-          required
-          onChange={handleChange}
-          className="w-full mb-2 p-2 border rounded"
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Password"
-          required
-          onChange={handleChange}
-          className="w-full mb-2 p-2 border rounded"
-        />
-        <input
-          name="profileImage"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleChange}
-          className="w-full mb-2"
-        />
+      <form onSubmit={formik.handleSubmit} encType="multipart/form-data" noValidate>
+        <div className="mb-4">
+          <input
+            name="fullname"
+            type="text"
+            placeholder="Full Name"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.fullname}
+            className={`w-full p-2 border rounded ${formik.touched.fullname && formik.errors.fullname ? 'border-red-500' : ''}`}
+          />
+          {formik.touched.fullname && formik.errors.fullname && (
+            <p className="text-sm text-red-500 mt-1">{formik.errors.fullname}</p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.email}
+            className={`w-full p-2 border rounded ${formik.touched.email && formik.errors.email ? 'border-red-500' : ''}`}
+          />
+          {formik.touched.email && formik.errors.email && (
+            <p className="text-sm text-red-500 mt-1">{formik.errors.email}</p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.password}
+            className={`w-full p-2 border rounded ${formik.touched.password && formik.errors.password ? 'border-red-500' : ''}`}
+          />
+          {formik.touched.password && formik.errors.password && (
+            <p className="text-sm text-red-500 mt-1">{formik.errors.password}</p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <input
+            name="profileImage"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleImageChange}
+            className="w-full"
+          />
+        </div>
 
         {preview && (
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-1">Image Preview:</p>
-            <Image src={preview} alt="Preview" className="w-32 h-32 object-cover rounded border" width={32} height={32} />
+          <div className="mb-4 flex flex-col items-center">
+            <p className="text-sm text-gray-600 mb-2">Image Preview:</p>
+            <Image
+              src={preview}
+              alt="Preview"
+              width={128}
+              height={128}
+              className="w-32 h-32 object-cover rounded border"
+            />
           </div>
         )}
 
