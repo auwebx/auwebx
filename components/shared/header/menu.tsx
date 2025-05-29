@@ -14,12 +14,32 @@ import {
 import { useCart } from "@/app/context/CartContext";
 import { useEffect, useState } from "react";
 
+// Define the expected shape of the user object
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+};
+
 const Menu = () => {
   const { cart } = useCart();
   const [pulse, setPulse] = useState(false);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
 
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser: User = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } else {
+        setUser(null);
+      }
+    } catch {
+      setUser(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (cart.length > 0) {
@@ -28,6 +48,11 @@ const Menu = () => {
       return () => clearTimeout(timer);
     }
   }, [cart.length]);
+
+  if (user === undefined) return null;
+
+  const isLoggedIn = !!user;
+  const authLink = isLoggedIn ? "/student/dashboard" : "/login";
 
   return (
     <div className="flex justify-end gap-3">
@@ -54,10 +79,8 @@ const Menu = () => {
           </Link>
         </Button>
         <Button asChild>
-          <Link href={user ? "/student/dashboard" : "/login"}>
-            {user ? (
-              <>Dashboard</>
-            ) : (
+          <Link href={authLink}>
+            {isLoggedIn ? "Dashboard" : (
               <>
                 <UserIcon className="mr-1" />
                 Sign In
@@ -100,9 +123,13 @@ const Menu = () => {
             </Button>
 
             <Button asChild variant="ghost">
-              <Link href="/sign-in">
-                <UserIcon className="mr-1" />
-                Sign In
+              <Link href={authLink}>
+                {isLoggedIn ? "Dashboard" : (
+                  <>
+                    <UserIcon className="mr-1" />
+                    Sign In
+                  </>
+                )}
               </Link>
             </Button>
 
