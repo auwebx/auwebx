@@ -5,17 +5,21 @@ import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
+import { useCart } from '@/app/context/CartContext';
+
 export default function ThankYouPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const reference = searchParams.get('ref');
+   const { clearCart } = useCart();
 
-  useEffect(() => {
-    // Redirect if ref is missing
+   useEffect(() => {
     if (!reference) {
       router.push('/');
+    } else {
+      clearCart(); // 👈 clear the cart once transaction is confirmed
     }
-  }, [reference, router]);
+  }, [reference, router, clearCart]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">

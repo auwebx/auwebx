@@ -16,6 +16,7 @@ export type CartContextType = {
   cartLoading: boolean;
   addToCart: (courseId: number) => Promise<void>;
   removeFromCart: (courseId: number) => Promise<void>;
+  clearCart: () => Promise<void>; 
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -108,11 +109,38 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       toast.error("Error removing from cart.");
       console.error("Remove from cart error:", err);
     }
+
+    
   };
+
+  const clearCart = async () => {
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
+  if (!user?.id) return;
+
+  try {
+    const promises = cart.map((item) =>
+      fetch("https://ns.auwebx.com/api/cart/remove_from_cart.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, course_id: item.course_id }),
+      })
+    );
+
+    await Promise.all(promises);
+
+    toast.success("Cart cleared after purchase.");
+    setCart([]);
+  } catch (err) {
+    toast.error("Failed to clear cart.");
+    console.error("Clear cart error:", err);
+  }
+};
+
 
   return (
     <CartContext.Provider
-      value={{ cart, cartLoading, addToCart, removeFromCart }}
+      value={{ cart, cartLoading, addToCart, removeFromCart, clearCart }}
     >
       {children}
     </CartContext.Provider>
