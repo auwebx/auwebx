@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 // Replace with your actual key
-const PAYSTACK_PUBLIC_KEY: string = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY!;
+const PAYSTACK_PUBLIC_KEY = "pk_test_79f6e1f1b469ad67530a82756225e84c4e924a6b";
 
 
 export default function CheckoutPage() {
