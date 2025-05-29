@@ -4,32 +4,18 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { useCart } from '@/app/context/CartContext'; // ✅ Import cart context
 
 export default function ThankYouPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const reference = searchParams.get('ref');
 
-  const { clearCart } = useCart(); // ✅ Get clearCart function
-
   useEffect(() => {
+    // Redirect if ref is missing
     if (!reference) {
       router.push('/');
-      return;
     }
-
-    // ✅ Clear cart after successful payment
-    clearCart();
-  }, [reference, router, clearCart]);
-
-  if (!reference) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Verifying payment...</p>
-      </div>
-    );
-  }
+  }, [reference, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -45,7 +31,7 @@ export default function ThankYouPage() {
         </div>
 
         <Link
-          href="/dashboard"
+          href="/student/dashboard"
           className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded transition"
         >
           Go to Dashboard
