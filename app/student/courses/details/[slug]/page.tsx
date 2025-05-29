@@ -50,7 +50,8 @@ interface PageProps {
 }
 
 export default function StudentCourseDetail({ params }: PageProps) {
-  const { slug } = params;
+  const slug = params.slug;
+
 
   const [user, setUser] = useState<User | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
