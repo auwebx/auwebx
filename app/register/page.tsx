@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -29,9 +29,11 @@ export default function Register() {
       .required('Full name is required'),
     email: Yup.string().email('Invalid email').required('Email is required'),
     password: Yup.string()
-      .min(6, 'Password must be at least 6 characters')
-      .matches(/[a-zA-Z]/, 'Password must contain letters')
-      .matches(/\d/, 'Password must contain a number')
+      .min(8, 'Password must be at least 8 characters')
+      .matches(/[A-Z]/, 'At least one uppercase letter')
+      .matches(/[a-z]/, 'At least one lowercase letter')
+      .matches(/[0-9]/, 'At least one digit')
+      .matches(/[@$!%*?&#]/, 'At least one special character')
       .required('Password is required'),
     confirmPassword: Yup.string()
       .oneOf([Yup.ref('password')], 'Passwords must match')
@@ -48,13 +50,32 @@ export default function Register() {
     validationSchema,
     onSubmit: async (values) => {
       setError('');
+
+      if (!imageFile) {
+        setError('Profile image is required.');
+        return;
+      }
+
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const maxSize = 2 * 1024 * 1024;
+
+      if (!validTypes.includes(imageFile.type)) {
+        setError('Only JPEG, PNG, and WEBP images are allowed.');
+        return;
+      }
+
+      if (imageFile.size > maxSize) {
+        setError('Image size must be under 2MB.');
+        return;
+      }
+
       setLoading(true);
 
       const body = new FormData();
       body.append('fullname', values.fullname);
       body.append('email', values.email);
       body.append('password', values.password);
-      if (imageFile) body.append('profileImage', imageFile);
+      body.append('profileImage', imageFile);
 
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register.php`, {
@@ -64,11 +85,9 @@ export default function Register() {
 
         const text = await res.text();
         let result;
-
         try {
           result = JSON.parse(text);
         } catch {
-          console.error('❌ Failed to parse JSON. Raw response:', text);
           throw new Error('Invalid server response');
         }
 
@@ -91,23 +110,25 @@ export default function Register() {
     if (!file) return;
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 2 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
       setError('Only JPEG, PNG, and WEBP images are allowed.');
+      setImageFile(null);
       return;
     }
 
     if (file.size > maxSize) {
       setError('Image size must be under 2MB.');
+      setImageFile(null);
       return;
     }
 
+    setError('');
     setImageFile(file);
     const reader = new FileReader();
     reader.onloadend = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
-    setError('');
   };
 
   return (
@@ -148,7 +169,6 @@ export default function Register() {
           )}
         </div>
 
-        {/* Password Field with Toggle */}
         <div className="mb-4 relative">
           <input
             name="password"
@@ -157,22 +177,16 @@ export default function Register() {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.password}
-            className={`w-full p-2 border rounded pr-10 ${formik.touched.password && formik.errors.password ? 'border-red-500' : ''}`}
+            className={`w-full p-2 border rounded ${formik.touched.password && formik.errors.password ? 'border-red-500' : ''}`}
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-            aria-label="Toggle password visibility"
-          >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-gray-500">
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
           {formik.touched.password && formik.errors.password && (
             <p className="text-sm text-red-500 mt-1">{formik.errors.password}</p>
           )}
         </div>
 
-        {/* Confirm Password Field with Toggle */}
         <div className="mb-4 relative">
           <input
             name="confirmPassword"
@@ -181,15 +195,10 @@ export default function Register() {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             value={formik.values.confirmPassword}
-            className={`w-full p-2 border rounded pr-10 ${formik.touched.confirmPassword && formik.errors.confirmPassword ? 'border-red-500' : ''}`}
+            className={`w-full p-2 border rounded ${formik.touched.confirmPassword && formik.errors.confirmPassword ? 'border-red-500' : ''}`}
           />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-            aria-label="Toggle confirm password visibility"
-          >
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-2 text-gray-500">
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
           {formik.touched.confirmPassword && formik.errors.confirmPassword && (
             <p className="text-sm text-red-500 mt-1">{formik.errors.confirmPassword}</p>
@@ -203,7 +212,6 @@ export default function Register() {
             accept="image/jpeg,image/png,image/webp"
             onChange={handleImageChange}
             className="w-full"
-            required
           />
         </div>
 
