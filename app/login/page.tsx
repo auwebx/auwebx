@@ -63,30 +63,18 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-blue-600">
-          <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
-            <Link href="/" className="text-xl flex font-bold text-blue-600">
-              <Image
-                src="/mylogo.jpg"
-                alt={`${APP_NAME} logo`}
-                height={48}
-                width={48}
-                priority={true}
-                className="rounded-lg"
-              />
-              <span className="hidden lg:block font-bold text-2xl ml-3">
-                {APP_NAME}
-              </span>
-            </Link>
-            <nav>
-              <Link
-                href="/"
-                className="text-sm text-gray-700 hover:text-blue-600 transition"
-              >
-                Courses
-              </Link>
-            </nav>
-          </header>
+        <Link href="/" className="text-xl flex font-bold text-blue-600">
+          <Image
+            src="/mylogo.jpg"
+            alt={`${APP_NAME} logo`}
+            height={48}
+            width={48}
+            priority={true}
+            className="rounded-lg"
+          />
+          <span className="hidden lg:block font-bold text-2xl ml-3">
+            {APP_NAME}
+          </span>
         </Link>
         <nav>
           <Link
