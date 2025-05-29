@@ -62,7 +62,7 @@ export default function LoginPage() {
       {/* Header */}
       <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
         <Link href="/" className="text-xl font-bold text-blue-600">
-          AUWEBx Academy
+          AUWEBx
         </Link>
         <nav>
           <Link
