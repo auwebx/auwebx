@@ -26,33 +26,63 @@ export default function CheckoutPage() {
     return toast.error("Paystack SDK not loaded. Try refreshing the page.");
   }
 
-  const handler = window.PaystackPop.setup({
-    key: PAYSTACK_PUBLIC_KEY,
-    email,
-    amount: amountInKobo,
-    currency: "NGN",
-    ref: `ref-${Date.now()}`,
-    metadata: {
-      custom_fields: [
-        {
-          display_name: "Courses",
-          variable_name: "courses",
-          value: cart.map((item) => item.title).join(", "),
+const handler = window.PaystackPop.setup({
+  key: PAYSTACK_PUBLIC_KEY,
+  email,
+  amount: amountInKobo,
+  currency: "NGN",
+  ref: `ref-${Date.now()}`,
+  metadata: {
+    custom_fields: [
+      {
+        display_name: "Courses",
+        variable_name: "courses",
+        value: cart.map((item) => item.title).join(", "),
+      },
+    ],
+  },
+  callback: async function (response: { reference: string }) {
+    toast.success("Payment successful!");
+
+    // 👇🏽 NEW: Save to backend
+    try {
+      const payload = {
+        email,
+        amount: amountInKobo,
+        currency: "NGN",
+        reference: response.reference,
+        courses: cart.map((item) => item.title).join(", "),
+        status: "success",
+      };
+
+      const res = await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      ],
-    },
-    callback: function (response: { reference: string }) {
-      toast.success("Payment successful!");
-      router.push(`/thank-you?ref=${response.reference}`);
-    },
-    onClose: function () {
-      toast("Payment window closed.");
-    },
-  });
+        body: JSON.stringify(payload),
+      });
 
-  handler.openIframe(); // VERY IMPORTANT
-};
+      if (!res.ok) {
+        console.error("❌ Failed to save payment on server. Status:", res.status);
+        toast.error("Payment saved, but server rejected the record.");
+      }
+    } catch (err) {
+      console.error("❌ Exception while saving payment:", err);
+      toast.error("Payment saved, but could not reach server.");
+    }
 
+    // 👇🏽 Redirect
+    router.push(`/thank-you?ref=${response.reference}`);
+  },
+
+  onClose: function () {
+    toast("Payment window closed.");
+  },
+});
+
+handler.openIframe(); // VERY IMPORTANT
+  }
 
   const handleBankTransfer = async () => {
     if (!email) return toast.error("Enter your email.");
