@@ -43,40 +43,53 @@ export default function CheckoutPage() {
       },
 
       callback: function (response: { reference: string }) {
-  toast.success("Payment successful!");
+        toast.success("Payment successful!");
 
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
+        const storedUser = localStorage.getItem("user");
+        const user = storedUser ? JSON.parse(storedUser) : null;
 
-  const payload = {
-    user_id: user?.id || null, // ✅ include user_id
-    email,
-    amount: amountInKobo,
-    currency: "NGN",
-    reference: response.reference,
-    courses: cart.map((item) => item.title).join(", "),
-    status: "success",
-  };
+        const payload = {
+          user_id: user?.id || null, // ✅ include user_id
+          email,
+          amount: amountInKobo,
+          currency: "NGN",
+          reference: response.reference,
+          courses: cart.map((item) => item.title).join(", "),
+          status: "success",
+        };
 
-  (async () => {
-    try {
-      await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-    } catch (error) {
-      console.error("Failed to save payment:", error);
-      toast.error("Payment saved, but failed to store record.");
-    }
+        (async () => {
+          try {
+            // 1. Save payment record
+            await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            });
 
-    // Redirect after saving
-    router.push(`/thank-you?ref=${response.reference}`);
-  })();
-},
+            // 2. Save enrollments for each course
+            for (const item of cart) {
+              await fetch("https://ns.auwebx.com/api/enrollments/create.php", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  user_id: user?.id,
+                  course_id: item.id, // ✅ course id
+                }),
+              });
+            }
 
+            router.push(`/thank-you?ref=${response.reference}`);
+          } catch (error) {
+            console.error("Error saving payment or enrollments:", error);
+            toast.error("Payment saved, but enrollment failed.");
+          }
+        })();
+      },
 
       onClose: function () {
         toast("Payment window closed.");
