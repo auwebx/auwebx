@@ -44,7 +44,7 @@ export default function StudentCourseDetailsPage() {
     if (user?.id) setUserId(user.id);
 
     async function fetchCourseDetails() {
-      const res = await fetch(`${API_URL}/fetch_course_by_slug.php?slug=${slug}`);
+      const res = await fetch(`${API_URL}/courses/fetch_course_by_slug.php?slug=${slug}`);
       const data = await res.json();
       if (data.status === 'success') {
         setCourse(data.course);
