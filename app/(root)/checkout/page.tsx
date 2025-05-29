@@ -27,57 +27,60 @@ export default function CheckoutPage() {
     }
 
     const handler = window.PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
+  key: PAYSTACK_PUBLIC_KEY,
+  email,
+  amount: amountInKobo,
+  currency: "NGN",
+  ref: `ref-${Date.now()}`,
+  metadata: {
+    custom_fields: [
+      {
+        display_name: "Courses",
+        variable_name: "courses",
+        value: cart.map((item) => item.title).join(", "),
+      },
+    ],
+  },
+
+  callback: function (response: { reference: string }) {
+    toast.success("Payment successful!");
+
+    const payload = {
       email,
       amount: amountInKobo,
       currency: "NGN",
-      ref: `ref-${Date.now()}`,
-      metadata: {
-        custom_fields: [
-          {
-            display_name: "Courses",
-            variable_name: "courses",
-            value: cart.map((item) => item.title).join(", "),
+      reference: response.reference,
+      courses: cart.map((item) => item.title).join(", "),
+      status: "success",
+    };
+
+    // ✅ Use an async IIFE here (Immediately Invoked Function Expression)
+    (async () => {
+      try {
+        await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        ],
-      },
+          body: JSON.stringify(payload),
+        });
+      } catch (error) {
+        console.error("Failed to save payment:", error);
+        toast.error("Payment saved, but failed to store record.");
+      }
 
-      // ✅ Make callback async to handle the fetch
-      callback: async function (response: { reference: string }) {
-        toast.success("Payment successful!");
+      // Redirect after saving
+      router.push(`/thank-you?ref=${response.reference}`);
+    })();
+  },
 
-        const payload = {
-          email,
-          amount: amountInKobo,
-          currency: "NGN",
-          reference: response.reference,
-          courses: cart.map((item) => item.title).join(", "),
-          status: "success",
-        };
+  onClose: function () {
+    toast("Payment window closed.");
+  },
+});
 
-        try {
-          await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-        } catch (error) {
-          console.error("Failed to save payment:", error);
-          toast.error("Payment saved, but failed to store record.");
-        }
+handler.openIframe(); // ✅ Do not forget this!
 
-        // ✅ Redirect after logging
-        router.push(`/thank-you?ref=${response.reference}`);
-      },
-
-      onClose: function () {
-        toast("Payment window closed.");
-      },
-    });
-
-    handler.openIframe(); // ✅ DO NOT FORGET THIS!
   };
 
   const handleBankTransfer = async () => {
