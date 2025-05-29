@@ -6,10 +6,10 @@ import { Home, Settings, BookAIcon } from "lucide-react";
 import clsx from "clsx";
 
 const links = [
-  { href: "/admin", label: "Dashboard", icon: Home },
-  { href: "/admin/courses", label: "Courses", icon: BookAIcon },
+  { href: "/student", label: "Dashboard", icon: Home },
+  { href: "/student/courses", label: "My Courses", icon: BookAIcon },
  
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/student/settings", label: "Settings", icon: Settings },
 ];
 
 export default function StudentSidebar() {
