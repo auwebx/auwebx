@@ -27,60 +27,63 @@ export default function CheckoutPage() {
     }
 
     const handler = window.PaystackPop.setup({
-  key: PAYSTACK_PUBLIC_KEY,
-  email,
-  amount: amountInKobo,
-  currency: "NGN",
-  ref: `ref-${Date.now()}`,
-  metadata: {
-    custom_fields: [
-      {
-        display_name: "Courses",
-        variable_name: "courses",
-        value: cart.map((item) => item.title).join(", "),
-      },
-    ],
-  },
-
-  callback: function (response: { reference: string }) {
-    toast.success("Payment successful!");
-
-    const payload = {
+      key: PAYSTACK_PUBLIC_KEY,
       email,
       amount: amountInKobo,
       currency: "NGN",
-      reference: response.reference,
-      courses: cart.map((item) => item.title).join(", "),
-      status: "success",
-    };
-
-    // ✅ Use an async IIFE here (Immediately Invoked Function Expression)
-    (async () => {
-      try {
-        await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      ref: `ref-${Date.now()}`,
+      metadata: {
+        custom_fields: [
+          {
+            display_name: "Courses",
+            variable_name: "courses",
+            value: cart.map((item) => item.title).join(", "),
           },
-          body: JSON.stringify(payload),
-        });
-      } catch (error) {
-        console.error("Failed to save payment:", error);
-        toast.error("Payment saved, but failed to store record.");
-      }
+        ],
+      },
 
-      // Redirect after saving
-      router.push(`/thank-you?ref=${response.reference}`);
-    })();
-  },
+      callback: function (response: { reference: string }) {
+  toast.success("Payment successful!");
 
-  onClose: function () {
-    toast("Payment window closed.");
-  },
-});
+  const storedUser = localStorage.getItem("user");
+  const user = storedUser ? JSON.parse(storedUser) : null;
 
-handler.openIframe(); // ✅ Do not forget this!
+  const payload = {
+    user_id: user?.id || null, // ✅ include user_id
+    email,
+    amount: amountInKobo,
+    currency: "NGN",
+    reference: response.reference,
+    courses: cart.map((item) => item.title).join(", "),
+    status: "success",
+  };
 
+  (async () => {
+    try {
+      await fetch("https://ns.auwebx.com/api/payments/save_payment.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (error) {
+      console.error("Failed to save payment:", error);
+      toast.error("Payment saved, but failed to store record.");
+    }
+
+    // Redirect after saving
+    router.push(`/thank-you?ref=${response.reference}`);
+  })();
+},
+
+
+      onClose: function () {
+        toast("Payment window closed.");
+      },
+    });
+
+    handler.openIframe(); // ✅ Do not forget this!
   };
 
   const handleBankTransfer = async () => {
