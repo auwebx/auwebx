@@ -16,7 +16,6 @@ export type CartContextType = {
   cartLoading: boolean;
   addToCart: (courseId: number) => Promise<void>;
   removeFromCart: (courseId: number) => Promise<void>;
-  clearCart: () => void; // ✅ Added
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -111,16 +110,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const clearCart = () => {
-    setCart([]);
-    toast.success("Cart cleared");
-    // Optional: You could also notify your backend to clear the cart for user.
-    // But since purchase is successful, clearing locally is usually enough.
-  };
-
   return (
     <CartContext.Provider
-      value={{ cart, cartLoading, addToCart, removeFromCart, clearCart }}
+      value={{ cart, cartLoading, addToCart, removeFromCart }}
     >
       {children}
     </CartContext.Provider>
