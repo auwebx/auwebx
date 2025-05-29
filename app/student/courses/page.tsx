@@ -10,9 +10,8 @@ type Course = {
   title: string;
   thumbnail: string;
   slug: string;
+  progress: number;
 };
-
-const API_URL = "https://ns.auwebx.com/api";
 
 export default function StudentCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -32,7 +31,7 @@ export default function StudentCoursesPage() {
     async function fetchCourses() {
       try {
         const res = await fetch(
-          `https://ns.auwebx.com/api/user/fetch_enrolled_courses.php?user_id=${user.id}`
+          `https://ns.auwebx.com/api/user/fetch_enrolled_courses_with_progress.php?user_id=${user.id}`
         );
         const data = await res.json();
 
@@ -41,7 +40,7 @@ export default function StudentCoursesPage() {
         }
 
         setCourses(data.courses);
-      } catch {
+      } catch{
         setError( 'Something went wrong');
       } finally {
         setLoading(false);
@@ -66,17 +65,24 @@ export default function StudentCoursesPage() {
             <Link
               key={course.id}
               href={`/courses/${course.slug}`}
-              className="block border rounded shadow hover:shadow-md transition"
+              className="block border rounded shadow hover:shadow-md transition overflow-hidden"
             >
               <Image
-                src={`${API_URL}/courses/${course.thumbnail}`}
+                src={course.thumbnail}
                 alt={course.title}
                 width={400}
                 height={200}
                 className="w-full h-48 object-cover"
               />
               <div className="p-4">
-                <h3 className="font-semibold text-lg">{course.title}</h3>
+                <h3 className="font-semibold text-lg mb-2">{course.title}</h3>
+                <div className="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                  <div
+                    className="bg-blue-500 h-full"
+                    style={{ width: `${course.progress}%` }}
+                  />
+                </div>
+                <p className="text-xs mt-1 text-gray-600">{course.progress}% completed</p>
               </div>
             </Link>
           ))}
