@@ -16,7 +16,7 @@ export type CartContextType = {
   cartLoading: boolean;
   addToCart: (courseId: number) => Promise<void>;
   removeFromCart: (courseId: number) => Promise<void>;
-  clearCart: () => Promise<void>; 
+  clearCart: () => Promise<void>;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -109,30 +109,30 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       toast.error("Error removing from cart.");
       console.error("Remove from cart error:", err);
     }
-
-    
   };
 
-  const clearCart = async () => {
+ const clearCart = async () => {
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
   if (!user?.id) return;
 
   try {
-    const promises = cart.map((item) =>
-      fetch("https://ns.auwebx.com/api/cart/remove_from_cart.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: user.id, course_id: item.course_id }),
-      })
-    );
+    const res = await fetch("https://ns.auwebx.com/api/cart/clear_cart.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.id }),
+    });
 
-    await Promise.all(promises);
+    const data = await res.json();
 
-    toast.success("Cart cleared after purchase.");
-    setCart([]);
+    if (data.status === "success") {
+      toast.success("Cart cleared after purchase.");
+      setCart([]);
+    } else {
+      toast.error("Failed to clear cart: " + data.message);
+    }
   } catch (err) {
-    toast.error("Failed to clear cart.");
+    toast.error("Error clearing cart.");
     console.error("Clear cart error:", err);
   }
 };

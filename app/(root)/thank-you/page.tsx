@@ -3,21 +3,23 @@
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect } from 'react';
-
+import { useEffect, useRef } from 'react';
 import { useCart } from '@/app/context/CartContext';
 
 export default function ThankYouPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const reference = searchParams.get('ref');
-   const { clearCart } = useCart();
+  const { clearCart } = useCart();
 
-   useEffect(() => {
+  const clearedRef = useRef(false); // prevent multiple clears
+
+  useEffect(() => {
     if (!reference) {
       router.push('/');
-    } else {
-      clearCart(); // 👈 clear the cart once transaction is confirmed
+    } else if (!clearedRef.current) {
+      clearedRef.current = true;
+      clearCart(); // only run once
     }
   }, [reference, router, clearCart]);
 
