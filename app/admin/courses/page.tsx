@@ -141,7 +141,7 @@ const AdminCoursesPage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle> Course Management</CardTitle>
+        <CardTitle> Courses Management</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="p-6">
