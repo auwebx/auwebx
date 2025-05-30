@@ -216,7 +216,7 @@ export default function StudentCourseDetailsPage() {
                               onClick={() => resetLectureProgress(lecture.id)}
                               className="text-xs text-red-500 hover:underline"
                             >
-                            <RotateCw size={16} />  Reset
+                            <RotateCw size={8} />  Reset
                             </button>
                           </div>
                         ) : null}
