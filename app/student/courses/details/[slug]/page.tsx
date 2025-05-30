@@ -214,9 +214,9 @@ export default function StudentCourseDetailsPage() {
                             </span>
                             <button
                               onClick={() => resetLectureProgress(lecture.id)}
-                              className="text-xs text-red-500 hover:underline"
+                              className="text-xs flex text-red-500 hover:underline"
                             >
-                            <RotateCw size={8} />  Reset
+                            <RotateCw size={16} />  Reset
                             </button>
                           </div>
                         ) : null}
