@@ -44,11 +44,25 @@ export default function StudentCourseDetailsPage() {
     if (user?.id) setUserId(user.id);
 
     async function fetchCourseDetails() {
-      const res = await fetch(`${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`);
-      const data = await res.json();
-      if (data.status === 'success') {
-        setCourse(data.course);
-        setChapters(data.chapters);
+      try {
+        const res = await fetch(`${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`);
+        const data = await res.json();
+
+        console.log('API response:', data);
+
+        if (data.status === 'success') {
+          setCourse(data.course);
+          setChapters(data.chapters);
+
+          // Debug log to verify nested lectures
+          data.chapters.forEach((chapter: Chapter) => {
+            console.log(`Chapter: ${chapter.title}, Lectures: ${chapter.lectures?.length}`);
+          });
+        } else {
+          console.error('Failed to load course:', data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching course data:', error);
       }
     }
 
@@ -61,10 +75,8 @@ export default function StudentCourseDetailsPage() {
     const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
 
     if (percentPlayed > 90) {
-      // Mark as watched locally
       setWatchedLectures(prev => [...prev, lectureId]);
 
-      // Mark as watched on backend
       await fetch(`${API_URL}/user/mark_lecture_watched.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -74,7 +86,7 @@ export default function StudentCourseDetailsPage() {
   };
 
   const getOverallProgress = () => {
-    const totalLectures = chapters.reduce((sum, c) => sum + c.lectures.length, 0);
+    const totalLectures = chapters.reduce((sum, c) => sum + (c.lectures?.length || 0), 0);
     return totalLectures === 0 ? 0 : Math.round((watchedLectures.length / totalLectures) * 100);
   };
 
@@ -97,46 +109,35 @@ export default function StudentCourseDetailsPage() {
             onClick={() => setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)}
             className="flex items-center justify-between cursor-pointer p-4 bg-gray-100"
           >
-            <h2 className="font-semibold">{chapter.title}</h2>
+            <h2 className="font-semibold">
+              {chapter.title} ({chapter.lectures?.length ?? 0} lectures)
+            </h2>
             {expandedChapter === chapter.id ? <ChevronDown /> : <ChevronRight />}
           </div>
 
-
-
-
-
-
           {expandedChapter === chapter.id && (
             <div className="p-4 space-y-6 bg-white">
-              {/* {chapter.lectures.map(lecture => (
-                <div key={lecture.id}>
-                  <h3 className="text-lg font-medium">{lecture.title}</h3>
-                  <p className="text-sm text-gray-500 mb-2">{lecture.description}</p>
-                  <video
-                    width="100%"
-                    controls
-                    onTimeUpdate={e =>
-                      handleLectureProgress(lecture.id, e.currentTarget as HTMLVideoElement)
-                    }
-                    className="rounded border"
-                  >
-                    <source src={lecture.video_url} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              ))} */}
-              {chapters.map((chapter) => (
-  <div key={chapter.id} className="mb-6 border rounded-lg p-4">
-    <h3 className="text-xl font-bold text-gray-800 mb-2">
-      {chapter.title}
-    </h3>
-    <ul className="ml-4 list-disc space-y-1 text-gray-700">
-      {chapter.lectures.map((lecture) => (
-        <li key={lecture.id}>{lecture.title}</li>
-      ))}
-    </ul>
-  </div>
-))}
+              {(chapter.lectures && chapter.lectures.length > 0) ? (
+                chapter.lectures.map(lecture => (
+                  <div key={lecture.id}>
+                    <h3 className="text-lg font-medium">{lecture.title}</h3>
+                    <p className="text-sm text-gray-500 mb-2">{lecture.description}</p>
+                    <video
+                      width="100%"
+                      controls
+                      onTimeUpdate={e =>
+                        handleLectureProgress(lecture.id, e.currentTarget as HTMLVideoElement)
+                      }
+                      className="rounded border"
+                    >
+                      <source src={lecture.video_url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400 italic">No lectures in this chapter.</p>
+              )}
             </div>
           )}
         </div>
