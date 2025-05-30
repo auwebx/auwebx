@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 type Course = {
   id: string;
@@ -58,7 +59,7 @@ export default function StudentCoursesPage() {
         <CardTitle>My Courses</CardTitle>
       </CardHeader>
       <CardContent>
-        {loading && <p>Loading...</p>}
+        {loading && <LoadingSpinner/>}
         {error && <p className="text-red-500">{error}</p>}
         {!loading && courses.length === 0 && <p>You have not enrolled in any courses yet.</p>}
 
