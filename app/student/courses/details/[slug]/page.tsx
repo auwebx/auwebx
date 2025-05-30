@@ -101,9 +101,14 @@ export default function StudentCourseDetailsPage() {
             {expandedChapter === chapter.id ? <ChevronDown /> : <ChevronRight />}
           </div>
 
+
+
+
+
+
           {expandedChapter === chapter.id && (
             <div className="p-4 space-y-6 bg-white">
-              {chapter.lectures.map(lecture => (
+              {/* {chapter.lectures.map(lecture => (
                 <div key={lecture.id}>
                   <h3 className="text-lg font-medium">{lecture.title}</h3>
                   <p className="text-sm text-gray-500 mb-2">{lecture.description}</p>
@@ -119,7 +124,19 @@ export default function StudentCourseDetailsPage() {
                     Your browser does not support the video tag.
                   </video>
                 </div>
-              ))}
+              ))} */}
+              {chapters.map((chapter) => (
+  <div key={chapter.id} className="mb-6 border rounded-lg p-4">
+    <h3 className="text-xl font-bold text-gray-800 mb-2">
+      {chapter.title}
+    </h3>
+    <ul className="ml-4 list-disc space-y-1 text-gray-700">
+      {chapter.lectures.map((lecture) => (
+        <li key={lecture.id}>{lecture.title}</li>
+      ))}
+    </ul>
+  </div>
+))}
             </div>
           )}
         </div>
