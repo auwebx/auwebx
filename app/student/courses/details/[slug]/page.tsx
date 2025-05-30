@@ -123,6 +123,22 @@ export default function StudentCourseDetailsPage() {
     // Optional: Call backend to reset if needed
   };
 
+  const resetLectureProgress = async (lectureId: string) => {
+    const newWatched = watchedLectures.filter((id) => id !== String(lectureId));
+    setWatchedLectures(newWatched);
+    localStorage.setItem(localStorageKey, JSON.stringify(newWatched));
+
+    try {
+      await fetch(`${API_URL}/user/reset_lecture.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, lecture_id: lectureId }),
+      });
+    } catch (error) {
+      console.error("Failed to reset lecture progress:", error);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       {course && (
@@ -174,80 +190,62 @@ export default function StudentCourseDetailsPage() {
 
           {expandedChapter === chapter.id && (
             <div className="p-4 space-y-6 bg-white">
-              {chapter.lectures.map((lecture) => {
-                const isWatched = watchedLectures.includes(String(lecture.id));
-
-                const resetIndividualLecture = async () => {
-                  const updated = watchedLectures.filter(
-                    (id) => id !== String(lecture.id)
-                  );
-                  setWatchedLectures(updated);
-                  localStorage.setItem(
-                    localStorageKey,
-                    JSON.stringify(updated)
+              {chapter.lectures && chapter.lectures.length > 0 ? (
+                chapter.lectures.map((lecture) => {
+                  const isWatched = watchedLectures.includes(
+                    String(lecture.id)
                   );
 
-                  // Optional backend call
-                  await fetch(`${API_URL}/user/reset_lecture_watch.php`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      user_id: userId,
-                      lecture_id: lecture.id,
-                    }),
-                  });
-                };
-
-                return (
-                  <div
-                    key={`lecture-${lecture.id}`}
-                    className={`p-4 border rounded transition ${
-                      isWatched
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-lg font-medium">{lecture.title}</h3>
-                      {isWatched ? (
-                        <div className="flex items-center gap-2">
-                          <span className="text-green-600 text-sm font-semibold">
-                            Watched ✓
-                          </span>
-                          <button
-                            onClick={resetIndividualLecture}
-                            className="text-xs text-red-500 hover:underline"
-                          >
-                            Reset
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {lecture.description}
-                    </p>
-                    <video
-                      width="100%"
-                      controls
-                      onTimeUpdate={(e) =>
-                        handleLectureProgress(
-                          lecture.id,
-                          e.currentTarget as HTMLVideoElement
-                        )
-                      }
-                      className="rounded border"
+                  return (
+                    <div
+                      key={`lecture-${lecture.id}`}
+                      className={`p-4 border rounded transition ${
+                        isWatched
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200"
+                      }`}
                     >
-                      <source src={lecture.video_url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  </div>
-                );
-              })}
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium">{lecture.title}</h3>
+                        {isWatched ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600 text-sm font-semibold">
+                              Watched ✓
+                            </span>
+                            <button
+                              onClick={() => resetLectureProgress(lecture.id)}
+                              className="text-xs text-red-500 hover:underline"
+                            >
+                              Reset
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {lecture.description}
+                      </p>
+                      <video
+                        width="100%"
+                        controls
+                        onTimeUpdate={(e) =>
+                          handleLectureProgress(
+                            lecture.id,
+                            e.currentTarget as HTMLVideoElement
+                          )
+                        }
+                        className="rounded border"
+                      >
+                        <source src={lecture.video_url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  );
+                })
               ) : (
-              <p className="text-sm text-gray-400 italic">
-                No lectures in this chapter.
-              </p>
-              )
+                <p className="text-sm text-gray-400 italic">
+                  No lectures in this chapter.
+                </p>
+              )}
             </div>
           )}
         </div>
