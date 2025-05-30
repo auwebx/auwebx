@@ -228,6 +228,7 @@ export default function StudentCourseDetailsPage() {
                         width="100%"
                         controls
                         controlsList="nodownload"
+                        onContextMenu={(e) => e.preventDefault()}
                         onTimeUpdate={(e) =>
                           handleLectureProgress(
                             lecture.id,
