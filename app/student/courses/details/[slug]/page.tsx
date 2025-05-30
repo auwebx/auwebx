@@ -214,7 +214,7 @@ export default function StudentCourseDetailsPage() {
                             </span>
                             <button
                               onClick={() => resetLectureProgress(lecture.id)}
-                              className="text-xs flex text-red-500 hover:underline"
+                              className="text-xs flex text-red-500 hover:underline cursor-pointer"
                             >
                             <RotateCw size={16} />  Reset
                             </button>
@@ -227,6 +227,7 @@ export default function StudentCourseDetailsPage() {
                       <video
                         width="100%"
                         controls
+                        controlsList="nodownload"
                         onTimeUpdate={(e) =>
                           handleLectureProgress(
                             lecture.id,
