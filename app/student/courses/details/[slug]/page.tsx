@@ -41,7 +41,13 @@ export default function StudentCourseDetailsPage() {
   useEffect(() => {
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
-  if (user?.id) setUserId(user.id);
+  if (user?.id) {
+    setUserId(user.id);
+  }
+}, []);
+
+useEffect(() => {
+  if (!userId) return;
 
   async function fetchCourseDetails() {
     try {
@@ -54,45 +60,52 @@ export default function StudentCourseDetailsPage() {
         setCourse(data.course);
         setChapters(data.chapters);
 
-        // ✅ Fetch watched lectures
-        const watchedRes = await fetch(`${API_URL}/user/get_watched_lectures.php?user_id=${user.id}&course_slug=${slug}`);
+        const watchedRes = await fetch(
+          `${API_URL}/user/get_watched_lectures.php?user_id=${userId}&course_slug=${slug}`
+        );
         const watchedData = await watchedRes.json();
 
         if (watchedData.status === "success") {
           setWatchedLectures(watchedData.watched_lecture_ids);
         }
-      } else {
-        console.error("Failed to load course:", data.message);
       }
     } catch (error) {
       console.error("Error fetching course data:", error);
     }
   }
 
-  if (user?.id) {
-    fetchCourseDetails();
-  }
-}, [slug]);
+  fetchCourseDetails();
+}, [slug, userId]);
 
 
-  const handleLectureProgress = async (
-    lectureId: string,
-    videoRef: HTMLVideoElement
-  ) => {
-    if (watchedLectures.includes(lectureId)) return;
 
-    const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
+const handleLectureProgress = async (
+  lectureId: string,
+  videoRef: HTMLVideoElement
+) => {
+  if (watchedLectures.includes(lectureId)) return;
 
-    if (percentPlayed > 90) {
-      setWatchedLectures((prev) => [...prev, lectureId]);
+  const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
+  console.log(`Lecture ${lectureId} played: ${percentPlayed.toFixed(1)}%`);
 
-      await fetch(`${API_URL}/user/mark_lecture_watched.php`, {
+  if (percentPlayed > 90) {
+    setWatchedLectures((prev) => [...prev, lectureId]);
+
+    try {
+      const res = await fetch(`${API_URL}/user/mark_lecture_watched.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, lecture_id: lectureId }),
       });
+
+      const result = await res.json();
+      console.log("Mark watched response:", result);
+    } catch (err) {
+      console.error("Failed to mark watched:", err);
     }
-  };
+  }
+};
+
 
   const getOverallProgress = () => {
     const totalLectures = chapters.reduce(
