@@ -108,7 +108,7 @@ export default function StudentCourseDetailsPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-4">
       {course && (
         <>
           <h1 className="text-2xl font-bold mb-2">{course.title}</h1>
