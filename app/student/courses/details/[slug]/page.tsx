@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, RotateCw } from "lucide-react";
 
 const API_URL = "https://ns.auwebx.com/api";
 
@@ -38,56 +38,57 @@ export default function StudentCourseDetailsPage() {
   const [watchedLectures, setWatchedLectures] = useState<string[]>([]);
   const [userId, setUserId] = useState<string>("");
 
+  const localStorageKey = `watchedLectures:${slug}:${userId}`;
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const user = storedUser ? JSON.parse(storedUser) : null;
-    if (user?.id) setUserId(user.id);
+    if (!user?.id) return;
 
-    async function fetchCourseDetails() {
+    setUserId(user.id);
+
+    async function fetchData() {
       try {
-        const res = await fetch(
-          `${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`
-        );
+        const res = await fetch(`${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`);
         const data = await res.json();
 
         if (data.status === "success") {
           setCourse(data.course);
           setChapters(data.chapters);
 
-          // ✅ Fetch watched lectures
-          const watchedRes = await fetch(
-            `${API_URL}/user/get_watched_lectures.php?user_id=${user.id}&course_slug=${slug}`
-          );
-          const watchedData = await watchedRes.json();
+          // Load from localStorage first
+          const cached = localStorage.getItem(`watchedLectures:${slug}:${user.id}`);
+          if (cached) {
+            setWatchedLectures(JSON.parse(cached));
+          } else {
+            // Fetch from server if no cache
+            const watchedRes = await fetch(`${API_URL}/user/get_watched_lectures.php?user_id=${user.id}&course_slug=${slug}`);
+            const watchedData = await watchedRes.json();
 
-          if (watchedData.status === "success") {
-            console.log("Watched lectures from API:", watchedData.watched_lecture_ids);
-            // ✅ Ensure all IDs are strings
-            setWatchedLectures(watchedData.watched_lecture_ids.map(String));
+            if (watchedData.status === "success") {
+              const ids = watchedData.watched_lecture_ids.map(String);
+              setWatchedLectures(ids);
+              localStorage.setItem(localStorageKey, JSON.stringify(ids));
+            }
           }
-        } else {
-          console.error("Failed to load course:", data.message);
         }
       } catch (error) {
-        console.error("Error fetching course data:", error);
+        console.error("Error loading course:", error);
       }
     }
 
-    if (user?.id) {
-      fetchCourseDetails();
-    }
-  }, [slug]);
+    fetchData();
+  }, [slug, userId]);
 
-  const handleLectureProgress = async (
-    lectureId: string,
-    videoRef: HTMLVideoElement
-  ) => {
+  const handleLectureProgress = async (lectureId: string, videoRef: HTMLVideoElement) => {
     if (watchedLectures.includes(String(lectureId))) return;
 
     const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
 
     if (percentPlayed > 90) {
-      setWatchedLectures((prev) => [...prev, String(lectureId)]);
+      const newWatched = [...watchedLectures, String(lectureId)];
+      setWatchedLectures(newWatched);
+      localStorage.setItem(localStorageKey, JSON.stringify(newWatched));
 
       await fetch(`${API_URL}/user/mark_lecture_watched.php`, {
         method: "POST",
@@ -98,30 +99,42 @@ export default function StudentCourseDetailsPage() {
   };
 
   const getOverallProgress = () => {
-    const totalLectures = chapters.reduce(
-      (sum, c) => sum + (c.lectures?.length || 0),
-      0
-    );
-    return totalLectures === 0
-      ? 0
-      : Math.round((watchedLectures.length / totalLectures) * 100);
+    const totalLectures = chapters.reduce((sum, c) => sum + (c.lectures?.length || 0), 0);
+    return totalLectures === 0 ? 0 : Math.round((watchedLectures.length / totalLectures) * 100);
+  };
+
+  const resetWatchProgress = () => {
+    setWatchedLectures([]);
+    localStorage.removeItem(localStorageKey);
+    // Optional: Call backend to reset if needed
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4">
       {course && (
         <>
           <h1 className="text-2xl font-bold mb-2">{course.title}</h1>
 
-          <div className="w-full bg-gray-300 h-3 rounded mb-4">
+          <div className="w-full bg-gray-300 h-3 rounded mb-2">
             <div
               className="bg-green-500 h-3 rounded"
               style={{ width: `${getOverallProgress()}%` }}
             />
           </div>
-          <p className="text-sm mb-6 text-gray-600">
-            {getOverallProgress()}% complete
-          </p>
+
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-sm text-gray-600">
+              {getOverallProgress()}% complete
+            </p>
+            {watchedLectures.length > 0 && (
+              <button
+                onClick={resetWatchProgress}
+                className="flex items-center gap-1 text-sm text-red-500 hover:underline"
+              >
+                <RotateCw size={16} /> Reset Watch Progress
+              </button>
+            )}
+          </div>
         </>
       )}
 
@@ -129,9 +142,7 @@ export default function StudentCourseDetailsPage() {
         <div key={chapter.id} className="mb-4 border rounded">
           <div
             onClick={() =>
-              setExpandedChapter(
-                expandedChapter === chapter.id ? null : chapter.id
-              )
+              setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)
             }
             className="flex items-center justify-between cursor-pointer p-4 bg-gray-100"
           >
