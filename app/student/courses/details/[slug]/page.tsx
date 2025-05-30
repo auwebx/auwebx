@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ChevronDown, ChevronRight, RotateCw } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const API_URL = "https://ns.auwebx.com/api";
 
@@ -37,6 +38,8 @@ export default function StudentCourseDetailsPage() {
   const [expandedChapter, setExpandedChapter] = useState<string | null>(null);
   const [watchedLectures, setWatchedLectures] = useState<string[]>([]);
   const [userId, setUserId] = useState<string>("");
+
+  const [loadingVideoId, setLoadingVideoId] = useState<string | null>(null);
 
   const localStorageKey = `watchedLectures:${slug}:${userId}`;
 
@@ -117,7 +120,7 @@ export default function StudentCourseDetailsPage() {
       : Math.round((watchedLectures.length / totalLectures) * 100);
   };
 
-/*   const resetWatchProgress = () => {
+  /*   const resetWatchProgress = () => {
     setWatchedLectures([]);
     localStorage.removeItem(localStorageKey);
     // Optional: Call backend to reset if needed
@@ -156,7 +159,7 @@ export default function StudentCourseDetailsPage() {
             <p className="text-sm text-gray-600">
               {getOverallProgress()}% complete
             </p>
-           {/*  {watchedLectures.length > 0 && (
+            {/*  {watchedLectures.length > 0 && (
               <button
                 onClick={resetWatchProgress}
                 className="flex items-center gap-1 text-sm text-red-500 hover:underline"
@@ -216,7 +219,7 @@ export default function StudentCourseDetailsPage() {
                               onClick={() => resetLectureProgress(lecture.id)}
                               className="text-xs flex text-red-500 hover:underline cursor-pointer"
                             >
-                            <RotateCw size={16} />  Reset
+                              <RotateCw size={16} /> Reset
                             </button>
                           </div>
                         ) : null}
@@ -224,22 +227,28 @@ export default function StudentCourseDetailsPage() {
                       <p className="text-sm text-gray-500 mb-2">
                         {lecture.description}
                       </p>
-                      <video
-                        width="100%"
-                        controls
-                        controlsList="nodownload"
-                        onContextMenu={(e) => e.preventDefault()}
-                        onTimeUpdate={(e) =>
-                          handleLectureProgress(
-                            lecture.id,
-                            e.currentTarget as HTMLVideoElement
-                          )
-                        }
-                        className="rounded border"
-                      >
-                        <source src={lecture.video_url} type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
+
+                      <div className="relative">
+                        {loadingVideoId === lecture.id && <LoadingSpinner />}
+                        <video
+                          width="100%"
+                          controls
+                          controlsList="nodownload"
+                          onContextMenu={(e) => e.preventDefault()}
+                          onLoadStart={() => setLoadingVideoId(lecture.id)}
+                          onCanPlay={() => setLoadingVideoId(null)}
+                          onTimeUpdate={(e) =>
+                            handleLectureProgress(
+                              lecture.id,
+                              e.currentTarget as HTMLVideoElement
+                            )
+                          }
+                          className="rounded border"
+                        >
+                          <source src={lecture.video_url} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
                     </div>
                   );
                 })
