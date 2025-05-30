@@ -26,6 +26,7 @@ type Course = {
   title: string;
   thumbnail: string;
   slug: string;
+  progress: number;
 };
 
 export default function StudentCourseDetailsPage() {
@@ -85,10 +86,10 @@ export default function StudentCourseDetailsPage() {
     }
   };
 
-  const getOverallProgress = () => {
+/*   const getOverallProgress = () => {
     const totalLectures = chapters.reduce((sum, c) => sum + (c.lectures?.length || 0), 0);
     return totalLectures === 0 ? 0 : Math.round((watchedLectures.length / totalLectures) * 100);
-  };
+  }; */
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -96,10 +97,13 @@ export default function StudentCourseDetailsPage() {
         <>
           <h1 className="text-2xl font-bold mb-2">{course.title}</h1>
 
-          <div className="w-full bg-gray-300 h-3 rounded mb-4">
-            <div className="bg-green-500 h-3 rounded" style={{ width: `${getOverallProgress()}%` }} />
-          </div>
-          <p className="text-sm mb-6 text-gray-600">{getOverallProgress()}% complete</p>
+          <div className="w-full bg-gray-200 rounded h-3 overflow-hidden">
+                  <div
+                    className="bg-blue-500 h-full"
+                    style={{ width: `${course.progress}%` }}
+                  />
+                </div>
+                <p className="text-xs mt-1 text-gray-600">{course.progress}% completed</p>
         </>
       )}
 
