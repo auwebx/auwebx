@@ -39,73 +39,63 @@ export default function StudentCourseDetailsPage() {
   const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
-  if (user?.id) {
-    setUserId(user.id);
-  }
-}, []);
+    const storedUser = localStorage.getItem("user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
+    if (user?.id) setUserId(user.id);
 
-useEffect(() => {
-  if (!userId) return;
-
-  async function fetchCourseDetails() {
-    try {
-      const res = await fetch(
-        `${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`
-      );
-      const data = await res.json();
-
-      if (data.status === "success") {
-        setCourse(data.course);
-        setChapters(data.chapters);
-
-        const watchedRes = await fetch(
-          `${API_URL}/user/get_watched_lectures.php?user_id=${userId}&course_slug=${slug}`
+    async function fetchCourseDetails() {
+      try {
+        const res = await fetch(
+          `${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`
         );
-        const watchedData = await watchedRes.json();
+        const data = await res.json();
 
-        if (watchedData.status === "success") {
-          setWatchedLectures(watchedData.watched_lecture_ids);
+        if (data.status === "success") {
+          setCourse(data.course);
+          setChapters(data.chapters);
+
+          // ✅ Fetch watched lectures
+          const watchedRes = await fetch(
+            `${API_URL}/user/get_watched_lectures.php?user_id=${user.id}&course_slug=${slug}`
+          );
+          const watchedData = await watchedRes.json();
+
+          if (watchedData.status === "success") {
+            console.log("Watched lectures from API:", watchedData.watched_lecture_ids);
+            // ✅ Ensure all IDs are strings
+            setWatchedLectures(watchedData.watched_lecture_ids.map(String));
+          }
+        } else {
+          console.error("Failed to load course:", data.message);
         }
+      } catch (error) {
+        console.error("Error fetching course data:", error);
       }
-    } catch (error) {
-      console.error("Error fetching course data:", error);
     }
-  }
 
-  fetchCourseDetails();
-}, [slug, userId]);
+    if (user?.id) {
+      fetchCourseDetails();
+    }
+  }, [slug]);
 
+  const handleLectureProgress = async (
+    lectureId: string,
+    videoRef: HTMLVideoElement
+  ) => {
+    if (watchedLectures.includes(String(lectureId))) return;
 
+    const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
 
-const handleLectureProgress = async (
-  lectureId: string,
-  videoRef: HTMLVideoElement
-) => {
-  if (watchedLectures.includes(lectureId)) return;
+    if (percentPlayed > 90) {
+      setWatchedLectures((prev) => [...prev, String(lectureId)]);
 
-  const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
-  console.log(`Lecture ${lectureId} played: ${percentPlayed.toFixed(1)}%`);
-
-  if (percentPlayed > 90) {
-    setWatchedLectures((prev) => [...prev, lectureId]);
-
-    try {
-      const res = await fetch(`${API_URL}/user/mark_lecture_watched.php`, {
+      await fetch(`${API_URL}/user/mark_lecture_watched.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, lecture_id: lectureId }),
       });
-
-      const result = await res.json();
-      console.log("Mark watched response:", result);
-    } catch (err) {
-      console.error("Failed to mark watched:", err);
     }
-  }
-};
-
+  };
 
   const getOverallProgress = () => {
     const totalLectures = chapters.reduce(
@@ -148,22 +138,18 @@ const handleLectureProgress = async (
             <h2 className="font-semibold">
               {chapter.title} ({chapter.lectures?.length ?? 0} lectures)
             </h2>
-            {expandedChapter === chapter.id ? (
-              <ChevronDown />
-            ) : (
-              <ChevronRight />
-            )}
+            {expandedChapter === chapter.id ? <ChevronDown /> : <ChevronRight />}
           </div>
 
           {expandedChapter === chapter.id && (
             <div className="p-4 space-y-6 bg-white">
               {chapter.lectures && chapter.lectures.length > 0 ? (
                 chapter.lectures.map((lecture) => {
-                  const isWatched = watchedLectures.includes(lecture.id);
+                  const isWatched = watchedLectures.includes(String(lecture.id));
 
                   return (
                     <div
-                      key={lecture.id}
+                      key={`lecture-${lecture.id}`}
                       className={`p-4 border rounded transition ${
                         isWatched
                           ? "border-green-500 bg-green-50"
