@@ -49,7 +49,9 @@ export default function StudentCourseDetailsPage() {
 
     async function fetchData() {
       try {
-        const res = await fetch(`${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`);
+        const res = await fetch(
+          `${API_URL}/user/fetch_course_by_slug.php?slug=${slug}`
+        );
         const data = await res.json();
 
         if (data.status === "success") {
@@ -57,12 +59,16 @@ export default function StudentCourseDetailsPage() {
           setChapters(data.chapters);
 
           // Load from localStorage first
-          const cached = localStorage.getItem(`watchedLectures:${slug}:${user.id}`);
+          const cached = localStorage.getItem(
+            `watchedLectures:${slug}:${user.id}`
+          );
           if (cached) {
             setWatchedLectures(JSON.parse(cached));
           } else {
             // Fetch from server if no cache
-            const watchedRes = await fetch(`${API_URL}/user/get_watched_lectures.php?user_id=${user.id}&course_slug=${slug}`);
+            const watchedRes = await fetch(
+              `${API_URL}/user/get_watched_lectures.php?user_id=${user.id}&course_slug=${slug}`
+            );
             const watchedData = await watchedRes.json();
 
             if (watchedData.status === "success") {
@@ -80,7 +86,10 @@ export default function StudentCourseDetailsPage() {
     fetchData();
   }, [slug, userId]);
 
-  const handleLectureProgress = async (lectureId: string, videoRef: HTMLVideoElement) => {
+  const handleLectureProgress = async (
+    lectureId: string,
+    videoRef: HTMLVideoElement
+  ) => {
     if (watchedLectures.includes(String(lectureId))) return;
 
     const percentPlayed = (videoRef.currentTime / videoRef.duration) * 100;
@@ -99,8 +108,13 @@ export default function StudentCourseDetailsPage() {
   };
 
   const getOverallProgress = () => {
-    const totalLectures = chapters.reduce((sum, c) => sum + (c.lectures?.length || 0), 0);
-    return totalLectures === 0 ? 0 : Math.round((watchedLectures.length / totalLectures) * 100);
+    const totalLectures = chapters.reduce(
+      (sum, c) => sum + (c.lectures?.length || 0),
+      0
+    );
+    return totalLectures === 0
+      ? 0
+      : Math.round((watchedLectures.length / totalLectures) * 100);
   };
 
   const resetWatchProgress = () => {
@@ -142,64 +156,98 @@ export default function StudentCourseDetailsPage() {
         <div key={chapter.id} className="mb-4 border rounded">
           <div
             onClick={() =>
-              setExpandedChapter(expandedChapter === chapter.id ? null : chapter.id)
+              setExpandedChapter(
+                expandedChapter === chapter.id ? null : chapter.id
+              )
             }
             className="flex items-center justify-between cursor-pointer p-4 bg-gray-100"
           >
             <h2 className="font-semibold">
               {chapter.title} ({chapter.lectures?.length ?? 0} lectures)
             </h2>
-            {expandedChapter === chapter.id ? <ChevronDown /> : <ChevronRight />}
+            {expandedChapter === chapter.id ? (
+              <ChevronDown />
+            ) : (
+              <ChevronRight />
+            )}
           </div>
 
           {expandedChapter === chapter.id && (
             <div className="p-4 space-y-6 bg-white">
-              {chapter.lectures && chapter.lectures.length > 0 ? (
-                chapter.lectures.map((lecture) => {
-                  const isWatched = watchedLectures.includes(String(lecture.id));
+              {chapter.lectures.map((lecture) => {
+                const isWatched = watchedLectures.includes(String(lecture.id));
 
-                  return (
-                    <div
-                      key={`lecture-${lecture.id}`}
-                      className={`p-4 border rounded transition ${
-                        isWatched
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium">{lecture.title}</h3>
-                        {isWatched && (
+                const resetIndividualLecture = async () => {
+                  const updated = watchedLectures.filter(
+                    (id) => id !== String(lecture.id)
+                  );
+                  setWatchedLectures(updated);
+                  localStorage.setItem(
+                    localStorageKey,
+                    JSON.stringify(updated)
+                  );
+
+                  // Optional backend call
+                  await fetch(`${API_URL}/user/reset_lecture_watch.php`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      user_id: userId,
+                      lecture_id: lecture.id,
+                    }),
+                  });
+                };
+
+                return (
+                  <div
+                    key={`lecture-${lecture.id}`}
+                    className={`p-4 border rounded transition ${
+                      isWatched
+                        ? "border-green-500 bg-green-50"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-lg font-medium">{lecture.title}</h3>
+                      {isWatched ? (
+                        <div className="flex items-center gap-2">
                           <span className="text-green-600 text-sm font-semibold">
                             Watched ✓
                           </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 mb-2">
-                        {lecture.description}
-                      </p>
-                      <video
-                        width="100%"
-                        controls
-                        onTimeUpdate={(e) =>
-                          handleLectureProgress(
-                            lecture.id,
-                            e.currentTarget as HTMLVideoElement
-                          )
-                        }
-                        className="rounded border"
-                      >
-                        <source src={lecture.video_url} type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
+                          <button
+                            onClick={resetIndividualLecture}
+                            className="text-xs text-red-500 hover:underline"
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      ) : null}
                     </div>
-                  );
-                })
+                    <p className="text-sm text-gray-500 mb-2">
+                      {lecture.description}
+                    </p>
+                    <video
+                      width="100%"
+                      controls
+                      onTimeUpdate={(e) =>
+                        handleLectureProgress(
+                          lecture.id,
+                          e.currentTarget as HTMLVideoElement
+                        )
+                      }
+                      className="rounded border"
+                    >
+                      <source src={lecture.video_url} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                );
+              })}
               ) : (
-                <p className="text-sm text-gray-400 italic">
-                  No lectures in this chapter.
-                </p>
-              )}
+              <p className="text-sm text-gray-400 italic">
+                No lectures in this chapter.
+              </p>
+              )
             </div>
           )}
         </div>
