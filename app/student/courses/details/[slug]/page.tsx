@@ -117,11 +117,11 @@ export default function StudentCourseDetailsPage() {
       : Math.round((watchedLectures.length / totalLectures) * 100);
   };
 
-  const resetWatchProgress = () => {
+/*   const resetWatchProgress = () => {
     setWatchedLectures([]);
     localStorage.removeItem(localStorageKey);
     // Optional: Call backend to reset if needed
-  };
+  }; */
 
   const resetLectureProgress = async (lectureId: string) => {
     const newWatched = watchedLectures.filter((id) => id !== String(lectureId));
@@ -156,14 +156,14 @@ export default function StudentCourseDetailsPage() {
             <p className="text-sm text-gray-600">
               {getOverallProgress()}% complete
             </p>
-            {watchedLectures.length > 0 && (
+           {/*  {watchedLectures.length > 0 && (
               <button
                 onClick={resetWatchProgress}
                 className="flex items-center gap-1 text-sm text-red-500 hover:underline"
               >
                 <RotateCw size={16} /> Reset Watch Progress
               </button>
-            )}
+            )} */}
           </div>
         </>
       )}
@@ -216,7 +216,7 @@ export default function StudentCourseDetailsPage() {
                               onClick={() => resetLectureProgress(lecture.id)}
                               className="text-xs text-red-500 hover:underline"
                             >
-                              Reset
+                            <RotateCw size={16} />  Reset
                             </button>
                           </div>
                         ) : null}
