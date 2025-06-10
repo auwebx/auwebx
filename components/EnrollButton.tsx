@@ -62,7 +62,7 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
         </Link>
       ) : isEnrolled ? (
         <Link
-           href="/student/dashboard"
+           href="/student/courses"
           className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition cursor-pointer"
         >
           Go to Dashboard
