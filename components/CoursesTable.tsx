@@ -85,7 +85,7 @@ export default function CoursesTable() {
               <td className="p-3">{index + 1}</td>
               <td className="p-3 font-medium">{course.title}</td>
               <td className="p-3 text-sm">{course.subtitle}</td>
-              <td className="p-3">${Number(course.price).toFixed(2)}</td>
+              <td className="p-3">₦{Number(course.price).toFixed(2)}</td>
 
               <td className="p-3">{course.is_published ? 'Yes' : 'No'}</td>
               <td className="p-3">{Number(course.rating)}</td>

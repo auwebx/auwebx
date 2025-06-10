@@ -73,6 +73,8 @@ export default function CourseDetailPage() {
   const [relatedCourses, setRelatedCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
+    const [loadingVideoId, setLoadingVideoId] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (!slug) return;
@@ -158,10 +160,14 @@ export default function CourseDetailPage() {
       {/* Video Intro */}
       {course.video_intro_url && (
         <div className="w-full aspect-video rounded-xl overflow-hidden shadow">
+           {loadingVideoId === course.video_intro_url && <LoadingSpinner />}
           <video
             src={course.video_intro_url}
             controls
             className="w-full h-full object-cover"
+            onContextMenu={(e) => e.preventDefault()}
+             onLoadStart={() => setLoadingVideoId(course.video_intro_url)}
+            onCanPlay={() => setLoadingVideoId(null)}
           />
         </div>
       )}
@@ -169,7 +175,7 @@ export default function CourseDetailPage() {
       {/* Price + Rating + Categories */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="text-2xl font-semibold text-green-600">
-          ${Number(course.price).toFixed(2)}
+         ₦{Number(course.price).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
         </div>
 
         <div className="flex items-center gap-2 text-yellow-500">

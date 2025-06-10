@@ -44,6 +44,8 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
 
+
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
@@ -173,8 +175,9 @@ export default function CoursesPage() {
                       src={`${API_URL}/courses/${course.thumbnail}`}
                       alt={course.title}
                       width={300}
-                      height={300}
-                      className="w-full h-48 object-cover rounded-t"
+                      height={400}
+                      className="w-full h-72 object-cover rounded-t"
+                      
                     />
                     <div className="p-4">
                       <h2 className="text-xl font-semibold">{course.title}</h2>
@@ -191,7 +194,8 @@ export default function CoursesPage() {
                         </span>
                       </div>
                       <div className="mt-2 font-bold text-lg text-green-600">
-                        ${Number(course.price).toFixed(2)}
+                       ₦{Number(course.price).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+
                       </div>
                       <div className="mt-4 w-full bg-blue-600 text-white py-2 rounded text-center hover:bg-blue-700 transition">
                         Course Details
