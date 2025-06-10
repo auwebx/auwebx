@@ -65,7 +65,7 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
            href="/student/courses"
           className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition cursor-pointer"
         >
-          Go to Dashboard
+          Go to Course
         </Link>
       ) : cartLoading ? (
         <button
