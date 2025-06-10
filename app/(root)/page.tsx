@@ -146,16 +146,15 @@ export default function CoursesPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Available Courses</h1>
 
-     <FilterBar
-  search={search}
-  setSearch={setSearch}
-  sort={sort}
-  setSort={setSort}
-  categoryId={categoryId}
-  setCategoryId={setCategoryId}
-  categories={categories}
-/>
-
+      <FilterBar
+        search={search}
+        setSearch={setSearch}
+        sort={sort}
+        setSort={setSort}
+        categoryId={categoryId}
+        setCategoryId={setCategoryId}
+        categories={categories}
+      />
 
       {/* Course grid or loader */}
       {loading ? (
@@ -195,7 +194,7 @@ export default function CoursesPage() {
                         ${Number(course.price).toFixed(2)}
                       </div>
                       <div className="mt-4 w-full bg-blue-600 text-white py-2 rounded text-center hover:bg-blue-700 transition">
-                        Enroll
+                        Course Details
                       </div>
                     </div>
                   </div>

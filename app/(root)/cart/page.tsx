@@ -101,7 +101,7 @@ if (cart.length === 0) {
 
               <div className="flex-grow">
                 <h2 className="text-lg font-semibold">{title}</h2>
-                <p className="text-gray-700 font-mono">${Number(price).toFixed(2)}</p>
+                <p className="text-gray-700 font-mono">₦{Number(price).toFixed(2)}</p>
               </div>
 
               <button
@@ -119,7 +119,7 @@ if (cart.length === 0) {
       <div className="mt-8 flex justify-between items-center">
         <div>
           <span className="text-xl font-semibold mr-2">Total:</span>
-          <span className="text-2xl font-bold">${totalPrice.toFixed(2)}</span>
+          <span className="text-2xl font-bold">₦{totalPrice.toFixed(2)}</span>
 
         </div>
 

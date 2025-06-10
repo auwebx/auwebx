@@ -1,5 +1,3 @@
-
-
 import React, { Dispatch, SetStateAction } from "react";
 
 type SortType = "" | "asc" | "desc";
@@ -28,8 +26,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   setCategoryId,
   categories,
 }) => {
-  const isFilterActive =
-    search !== "" || sort !== "" || categoryId !== "all";
+  const isFilterActive = search !== "" || sort !== "" || categoryId !== "all";
 
   return (
     <div className="mb-6 space-y-4">
@@ -45,9 +42,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
 
         <select
           value={sort}
-          onChange={(e) =>
-            setSort(e.target.value as SortType)
-          }
+          onChange={(e) => setSort(e.target.value as SortType)}
           className="px-4 py-2 border rounded shadow-sm w-full sm:w-1/3"
         >
           <option value="">Sort by Price</option>
@@ -56,11 +51,15 @@ const FilterBar: React.FC<FilterBarProps> = ({
         </select>
       </div>
 
-       {/* Mobile-only Categories Select */}
-      <div className="sm:hidden px-1">
+      {/* Mobile-only Categories Select */}
+      {/* <div className="sm:hidden px-1">
         <select
           value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
+          onChange={(e) =>
+            setCategoryId(
+              e.target.value === "all" ? "all" : Number(e.target.value)
+            )
+          }
           className="w-full px-4 py-2 border rounded shadow-sm"
         >
           <option value="all">All Categories</option>
@@ -70,29 +69,31 @@ const FilterBar: React.FC<FilterBarProps> = ({
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
 
       {/* Category Pills (desktop and tablet) */}
-      <div className="hidden sm:block overflow-x-auto px-1 sm:px-4">
-        <div className="flex gap-2">
+      <div className="overflow-x-auto px-1 sm:px-4 ">
+        <div className="flex gap-2 py-4">
           <button
             onClick={() => setCategoryId("all")}
             className={`px-3 py-1 rounded-full border text-sm whitespace-nowrap transition
-              ${categoryId === "all"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              ${
+                categoryId === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
           >
-            All
+            All Categories
           </button>
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setCategoryId(cat.id)}
-              className={`px-3 py-1 rounded-full border text-sm whitespace-nowrap transition
-                ${categoryId === cat.id
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className={`px-3 py-4 rounded-full border text-sm whitespace-nowrap transition
+                ${
+                  categoryId === cat.id
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
             >
               {cat.name}
@@ -111,9 +112,10 @@ const FilterBar: React.FC<FilterBarProps> = ({
           }}
           disabled={!isFilterActive}
           className={`px-4 py-2 text-sm rounded shadow-sm w-full sm:w-auto transition-colors
-            ${isFilterActive
-              ? "bg-red-100 text-red-600 hover:bg-red-200"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+            ${
+              isFilterActive
+                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
             }`}
         >
           Reset Filters
@@ -124,4 +126,3 @@ const FilterBar: React.FC<FilterBarProps> = ({
 };
 
 export default FilterBar;
-
