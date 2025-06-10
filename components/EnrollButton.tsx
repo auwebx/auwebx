@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/app/context/CartContext';
 
@@ -12,7 +12,7 @@ type EnrollButtonProps = {
 export default function EnrollButton({ courseId }: EnrollButtonProps) {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const router = useRouter();
+  // const router = useRouter();
 
   const { cart, cartLoading, addToCart } = useCart();
 
@@ -45,9 +45,9 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
       });
   }, [courseId]);
 
-  const handleGoToCourse = () => {
+/*   const handleGoToCourse = () => {
     router.push(`/courses/${courseId}`);
-  };
+  }; */
 
   if (isLoggedIn === null) return null;
 
@@ -61,12 +61,12 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
           Sign in to Add to Cart
         </Link>
       ) : isEnrolled ? (
-        <button
-          onClick={handleGoToCourse}
-          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition"
+        <Link
+           href="/student/dashboard"
+          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md transition cursor-pointer"
         >
-          Go to Course
-        </button>
+          Go to Dashboard
+        </Link>
       ) : cartLoading ? (
         <button
           disabled
