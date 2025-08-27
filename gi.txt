@@ -1,5 +1,5 @@
 git status
 git add .
-git commit -m "Describe what you changedfdssds"
+git commit -m "Describe what you bank transfer"
 git push
 

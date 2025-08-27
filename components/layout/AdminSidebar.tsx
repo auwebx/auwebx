@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Settings, BookAIcon, List } from "lucide-react";
+import { Home, Users, Settings, BookAIcon, List, BanknoteIcon } from "lucide-react";
 import clsx from "clsx";
 
 const links = [
@@ -14,6 +14,7 @@ const links = [
   { href: "/admin/lectures", label: "Lectures", icon: List },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/transfers", label: "Bank Transfers", icon: BanknoteIcon },
 ];
 
 export default function AdminSidebar() {
